@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+    <title>Cat Detector</title>
+    <style>table, table td {
+        border: 1px solid #ccc;
+        border-collapse: collapse;
+    }
+    table td {
+        text-align: center;
+        width: 3%;
+    }
+    #images img {
+        height: 150px;
+        border: 2px solid gray;
+        margin-right: 5px;
+    }
+    #images img.cat {
+        border: 2px solid green;
+    }</style>
+</head>
+<body>
+    <div id="images"></div>
+    <!--<canvas id="loader" width="1000" height="1000"></canvas>-->
+    <div id="results"></div>
+    <div id="status"></div>
+    <table>
+        <thead>
+            <tr>
+                <th>operation</th>
+                <th>duration (ms)</th>
+            </tr>
+        </thead>
+        <tbody id="times">
+        </tbody>
+    </table>
+
+<script src="/parallel-demo.e31bb0bc.js"></script>
+</body>
+</html>

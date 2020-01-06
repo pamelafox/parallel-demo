@@ -1,0 +1,43 @@
+{
+  "name": "parallel-demo",
+  "version": "1.0.0",
+  "description": "An example of parallel programming in the browser for AP CSP.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pamelafox/parallel-demo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pamelafox/parallel-demo/issues"
+  },
+  "homepage": "https://github.com/pamelafox/parallel-demo#readme",
+  "dependencies": {
+    "@babel/runtime": "^7.7.7",
+    "threads": "^1.0.0",
+    "workerpool": "^5.0.4"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-react"
+    ],
+    "plugins": [
+      [
+        "@babel/plugin-transform-runtime",
+        {
+          "regenerator": true
+        }
+      ]
+    ]
+  },
+  "devDependencies": {
+    "@babel/core": "^7.7.7",
+    "@babel/plugin-transform-runtime": "^7.7.6",
+    "@babel/preset-react": "^7.7.4"
+  }
+}
