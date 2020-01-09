@@ -6574,16 +6574,27 @@ function _startWorkers() {
               categoryNames.push('Worker ' + (i + 1));
             }
 
+            _highcharts.default.setOptions({
+              chart: {
+                style: {
+                  fontFamily: 'Lato, sans-serif'
+                }
+              }
+            });
+
             chart = _highcharts.default.ganttChart('chart', {
               title: {
-                text: 'Worker threads'
+                text: undefined
               },
               yAxis: {
                 categories: categoryNames
               },
-              xAxis: {
-                min: new Date().getTime()
-              },
+              xAxis: [{
+                visible: false,
+                opposite: false
+              }, {
+                min: new Date().getTime() - 1000
+              }],
               series: []
             });
             pool = (0, _threads.Pool)(function () {
@@ -6638,27 +6649,27 @@ function _startWorkers() {
             });
             _i = 0;
 
-          case 13:
+          case 14:
             if (!(_i < numImages)) {
-              _context3.next = 23;
+              _context3.next = 24;
               break;
             }
 
             imageName = shuffledImageNames[_i];
-            _context3.next = 17;
+            _context3.next = 18;
             return loadImage(imageName, imagesDiv);
 
-          case 17:
+          case 18:
             _imageNode = _context3.sent;
             imageNodes[_i] = _imageNode;
             processImage(imageName, _imageNode, pool);
 
-          case 20:
+          case 21:
             _i++;
-            _context3.next = 13;
+            _context3.next = 14;
             break;
 
-          case 23:
+          case 24:
           case "end":
             return _context3.stop();
         }
@@ -6694,11 +6705,7 @@ document.getElementById("imagesRange").addEventListener("change", updateNumImage
 updateNumImages();
 document.getElementById("processButton").addEventListener("click", function () {
   startWorkers().catch(console.error);
-}); // https://www.kevinhoyt.com/2018/10/23/image-processing-in-a-web-worker/
-// https://www.kevinhoyt.com/2018/10/31/transferable-imagedata/
-// https://stackoverflow.com/questions/54359728/tensorflow-js-in-webworkers
-// https://github.com/tensorflow/tfjs/issues/102
-// https://developer.mozilla.org/en-US/docs/Web/API/NavigatorConcurrentHardware/hardwareConcurrency
+});
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","threads":"../node_modules/threads/dist-esm/index.js","highcharts":"../node_modules/highcharts/highcharts.js","highcharts/modules/gantt":"../node_modules/highcharts/modules/gantt.js","threads/register":"../node_modules/threads/register.js","./images.js":"images.js","./worker.js":[["worker.ab30da2c.js","worker.js"],"worker.ab30da2c.js.map","worker.js"]}],"../../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -6727,7 +6734,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62192" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64415" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

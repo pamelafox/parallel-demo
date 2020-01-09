@@ -64,16 +64,26 @@ async function startWorkers() {
     for (let i = 0; i < numWorkers; i++) {
         categoryNames.push('Worker ' + (i + 1));
     }
+    Highcharts.setOptions({
+        chart: {
+            style: {
+                fontFamily: 'Lato, sans-serif'
+            }
+        }
+    });
     chart = Highcharts.ganttChart('chart', {
         title: {
-        text: 'Worker threads'
+            text: undefined
         },
         yAxis: {
             categories: categoryNames
         },
-        xAxis: {
-            min: new Date().getTime()
-        },
+        xAxis: [{
+            visible: false,
+            opposite: false
+        }, {
+            min: new Date().getTime() - 1000
+        }],
         series: []
     });
 
