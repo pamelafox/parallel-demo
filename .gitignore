@@ -1,2 +1,6 @@
+# NPM stuff
 node_modules/
+# Cache for parcel
 .cache/
+# Apple stuff
+.DS_Store

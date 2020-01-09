@@ -28,13 +28,17 @@ expose(async function handleImage(objData) {
             objData.height
         );
         if (!model) {
-            console.log("Loading model...")
-            const model = await mobilenet.load();
-            console.log("Model loaded...");
+            model = await mobilenet.load();
             return await detectCat(model, imageName, imageData);
         } else {
-            console.log("Model already loaded");
             return await detectCat(model, imageName, imageData);
         }
     }
 )
+
+/*
+expose(function slowSquare(n) {
+    var i = 0;
+    while (++i < n * n) {}
+    return i;
+})*/

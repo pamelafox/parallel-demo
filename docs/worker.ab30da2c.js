@@ -117,7 +117,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"node_modules/regenerator-runtime/runtime.js":[function(require,module,exports) {
+})({"../node_modules/regenerator-runtime/runtime.js":[function(require,module,exports) {
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
  *
@@ -845,10 +845,10 @@ try {
   Function("r", "regeneratorRuntime = r")(runtime);
 }
 
-},{}],"node_modules/@babel/runtime/regenerator/index.js":[function(require,module,exports) {
+},{}],"../node_modules/@babel/runtime/regenerator/index.js":[function(require,module,exports) {
 module.exports = require("regenerator-runtime");
 
-},{"regenerator-runtime":"node_modules/regenerator-runtime/runtime.js"}],"node_modules/@babel/runtime/helpers/asyncToGenerator.js":[function(require,module,exports) {
+},{"regenerator-runtime":"../node_modules/regenerator-runtime/runtime.js"}],"../node_modules/@babel/runtime/helpers/asyncToGenerator.js":[function(require,module,exports) {
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
   try {
     var info = gen[key](arg);
@@ -886,7 +886,176 @@ function _asyncToGenerator(fn) {
 }
 
 module.exports = _asyncToGenerator;
-},{}],"../../../../usr/local/lib/node_modules/parcel-bundler/node_modules/process/browser.js":[function(require,module,exports) {
+},{}],"../node_modules/symbol-observable/es/ponyfill.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = symbolObservablePonyfill;
+
+function symbolObservablePonyfill(root) {
+  var result;
+  var Symbol = root.Symbol;
+
+  if (typeof Symbol === 'function') {
+    if (Symbol.observable) {
+      result = Symbol.observable;
+    } else {
+      result = Symbol('observable');
+      Symbol.observable = result;
+    }
+  } else {
+    result = '@@observable';
+  }
+
+  return result;
+}
+
+;
+},{}],"../node_modules/symbol-observable/es/index.js":[function(require,module,exports) {
+var global = arguments[3];
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _ponyfill = _interopRequireDefault(require("./ponyfill.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/* global window */
+var root;
+
+if (typeof self !== 'undefined') {
+  root = self;
+} else if (typeof window !== 'undefined') {
+  root = window;
+} else if (typeof global !== 'undefined') {
+  root = global;
+} else if (typeof module !== 'undefined') {
+  root = module;
+} else {
+  root = Function('return this')();
+}
+
+var result = (0, _ponyfill.default)(root);
+var _default = result;
+exports.default = _default;
+},{"./ponyfill.js":"../node_modules/symbol-observable/es/ponyfill.js"}],"../node_modules/is-observable/index.js":[function(require,module,exports) {
+'use strict';
+
+const symbolObservable = require('symbol-observable').default;
+
+module.exports = value => Boolean(value && value[symbolObservable] && value === value[symbolObservable]());
+},{"symbol-observable":"../node_modules/symbol-observable/es/index.js"}],"../node_modules/threads/dist/common.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function rehydrateError(error) {
+    return Object.assign(Error(error.message), {
+        name: error.name,
+        stack: error.stack
+    });
+}
+exports.rehydrateError = rehydrateError;
+function serializeError(error) {
+    return {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+    };
+}
+exports.serializeError = serializeError;
+
+},{}],"../node_modules/threads/dist/symbols.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.$errors = Symbol("thread.errors");
+exports.$events = Symbol("thread.events");
+exports.$terminate = Symbol("thread.terminate");
+exports.$transferable = Symbol("thread.transferable");
+exports.$worker = Symbol("thread.worker");
+
+},{}],"../node_modules/threads/dist/transferable.js":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const symbols_1 = require("./symbols");
+function isTransferable(thing) {
+    if (!thing || typeof thing !== "object")
+        return false;
+    // Don't check too thoroughly, since the list of transferable things in JS might grow over time
+    return true;
+}
+function isTransferDescriptor(thing) {
+    return thing && typeof thing === "object" && thing[symbols_1.$transferable];
+}
+exports.isTransferDescriptor = isTransferDescriptor;
+function Transfer(payload, transferables) {
+    if (!transferables) {
+        if (!isTransferable(payload))
+            throw Error();
+        transferables = [payload];
+    }
+    return {
+        [symbols_1.$transferable]: true,
+        send: payload,
+        transferables
+    };
+}
+exports.Transfer = Transfer;
+
+},{"./symbols":"../node_modules/threads/dist/symbols.js"}],"../node_modules/threads/dist/types/messages.js":[function(require,module,exports) {
+"use strict";
+/////////////////////////////
+// Messages sent by master:
+Object.defineProperty(exports, "__esModule", { value: true });
+var MasterMessageType;
+(function (MasterMessageType) {
+    MasterMessageType["run"] = "run";
+})(MasterMessageType = exports.MasterMessageType || (exports.MasterMessageType = {}));
+////////////////////////////
+// Messages sent by worker:
+var WorkerMessageType;
+(function (WorkerMessageType) {
+    WorkerMessageType["error"] = "error";
+    WorkerMessageType["init"] = "init";
+    WorkerMessageType["result"] = "result";
+    WorkerMessageType["running"] = "running";
+    WorkerMessageType["uncaughtError"] = "uncaughtError";
+})(WorkerMessageType = exports.WorkerMessageType || (exports.WorkerMessageType = {}));
+
+},{}],"../node_modules/threads/dist/worker/implementation.browser.js":[function(require,module,exports) {
+"use strict";
+/// <reference lib="dom" />
+// tslint:disable no-shadowed-variable
+Object.defineProperty(exports, "__esModule", { value: true });
+const isWorkerRuntime = function isWorkerRuntime() {
+    return typeof self !== "undefined" && self.postMessage ? true : false;
+};
+const postMessageToMaster = function postMessageToMaster(data, transferList) {
+    self.postMessage(data, transferList);
+};
+const subscribeToMasterMessages = function subscribeToMasterMessages(onMessage) {
+    const messageHandler = (messageEvent) => {
+        onMessage(messageEvent.data);
+    };
+    const unsubscribe = () => {
+        self.removeEventListener("message", messageHandler);
+    };
+    self.addEventListener("message", messageHandler);
+    return unsubscribe;
+};
+exports.default = {
+    isWorkerRuntime,
+    postMessageToMaster,
+    subscribeToMasterMessages
+};
+
+},{}],"../../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/_empty.js":[function(require,module,exports) {
+
+},{}],"../../../../../usr/local/lib/node_modules/parcel-bundler/node_modules/process/browser.js":[function(require,module,exports) {
 
 // shim for using process in browser
 var process = module.exports = {}; // cached from whatever global is present so that test runners that stub it
@@ -1095,199 +1264,329 @@ process.chdir = function (dir) {
 process.umask = function () {
   return 0;
 };
-},{}],"node_modules/workerpool/dist/workerpool.min.js":[function(require,module,exports) {
-var define;
+},{}],"../node_modules/threads/dist/worker/implementation.js":[function(require,module,exports) {
 var process = require("process");
-var __dirname = "/Users/pamelafox/Documents/parallel-demo/node_modules/workerpool/dist";
-/**
- * workerpool.js
- * https://github.com/josdejong/workerpool
- *
- * Offload tasks to a pool of workers on node.js and in the browser.
- *
- * @version 5.0.4
- * @date    2019-12-31
- *
- * @license
- * Copyright (C) 2014-2019 Jos de Jong <wjosdejong@gmail.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy
- * of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+"use strict";
+// tslint:disable no-var-requires
+/*
+ * This file is only a stub to make './implementation' resolve to the right module.
  */
-!function(e,r){"object"==typeof exports&&"object"==typeof module?module.exports=r():"function"==typeof define&&define.amd?define("workerpool",[],r):"object"==typeof exports?exports.workerpool=r():e.workerpool=r()}("undefined"!=typeof self?self:this,function(){return d=[function(e,r,t){function o(e){return void 0!==e&&null!=e.versions&&null!=e.versions.node}var n=t(2);e.exports.isNode=o,e.exports.platform="undefined"!=typeof process&&o(process)?"node":"browser";var i=function(e){try{return n(e)}catch(e){return null}}("worker_threads");e.exports.isMainThread="node"===e.exports.platform?(!i||i.isMainThread)&&!process.connected:"undefined"!=typeof Window,e.exports.cpus="browser"===e.exports.platform?self.navigator.hardwareConcurrency:n("os").cpus().length},function(e,r,t){"use strict";function a(e,t){var o=this;if(!(this instanceof a))throw new SyntaxError("Constructor must be called with the new operator");if("function"!=typeof e)throw new SyntaxError("Function parameter handler(resolve, reject) missing");var n=[],i=[];this.resolved=!1,this.rejected=!1,this.pending=!0;var s=function(e,r){n.push(e),i.push(r)};this.then=function(n,i){return new a(function(e,r){var t=n?c(n,e,r):e,o=i?c(i,e,r):r;s(t,o)},o)};var r=function(t){return o.resolved=!0,o.rejected=!1,o.pending=!1,n.forEach(function(e){e(t)}),s=function(e,r){e(t)},r=u=function(){},o},u=function(t){return o.resolved=!1,o.rejected=!0,o.pending=!1,i.forEach(function(e){e(t)}),s=function(e,r){r(t)},r=u=function(){},o};this.cancel=function(){return t?t.cancel():u(new f),o},this.timeout=function(e){if(t)t.timeout(e);else{var r=setTimeout(function(){u(new p("Promise timed out after "+e+" ms"))},e);o.always(function(){clearTimeout(r)})}return o},e(function(e){r(e)},function(e){u(e)})}function c(t,o,n){return function(e){try{var r=t(e);r&&"function"==typeof r.then&&"function"==typeof r.catch?r.then(o,n):o(r)}catch(e){n(e)}}}function f(e){this.message=e||"promise cancelled",this.stack=(new Error).stack}function p(e){this.message=e||"timeout exceeded",this.stack=(new Error).stack}a.prototype.catch=function(e){return this.then(null,e)},a.prototype.always=function(e){return this.then(e,e)},a.all=function(e){return new a(function(t,o){var n=e.length,i=[];n?e.forEach(function(e,r){e.then(function(e){i[r]=e,0==--n&&t(i)},function(e){n=0,o(e)})}):t(i)})},a.defer=function(){var t={};return t.promise=new a(function(e,r){t.resolve=e,t.reject=r}),t},(f.prototype=new Error).constructor=Error,f.prototype.name="CancellationError",a.CancellationError=f,(p.prototype=new Error).constructor=Error,p.prototype.name="TimeoutError",a.TimeoutError=p,e.exports=a},function(module,exports){var requireFoolWebpack=eval("typeof require !== 'undefined' ? require : function (module) { throw new Error('Module \" + module + \" not found.') }");module.exports=requireFoolWebpack},function(e,r,t){var o=t(0);r.pool=function(e,r){return new(t(4))(e,r)},r.worker=function(e){var r=t(8);r.add(e)},r.Promise=t(1),r.platform=o.platform,r.isMainThread=o.isMainThread,r.cpus=o.cpus},function(e,r,t){var s=t(1),o=t(5),n=t(0),i=new(t(7));function u(e,r){"string"==typeof e?this.script=e||null:(this.script=null,r=e),this.workers=[],this.tasks=[],(r=r||{}).nodeWorker&&console.warn('WARNING: Option "nodeWorker" is deprecated since workerpool@5.0.0. Please use "workerType" instead.'),this.forkArgs=r.forkArgs||[],this.forkOpts=r.forkOpts||{},this.debugPortStart=r.debugPortStart||43210,this.nodeWorker=r.nodeWorker,this.workerType=r.workerType||r.nodeWorker||"auto",this.maxQueueSize=r.maxQueueSize||1/0,r&&"maxWorkers"in r?(function(e){if(!a(e)||!c(e)||e<1)throw new TypeError("Option maxWorkers must be an integer number >= 1")}(r.maxWorkers),this.maxWorkers=r.maxWorkers):this.maxWorkers=Math.max((n.cpus||4)-1,1),r&&"minWorkers"in r&&("max"===r.minWorkers?this.minWorkers=this.maxWorkers:(function(e){if(!a(e)||!c(e)||e<0)throw new TypeError("Option minWorkers must be an integer number >= 0")}(r.minWorkers),this.minWorkers=r.minWorkers,this.maxWorkers=Math.max(this.minWorkers,this.maxWorkers)),this._ensureMinWorkers()),this._boundNext=this._next.bind(this),"thread"===this.workerType&&o.ensureWorkerThreads()}function a(e){return"number"==typeof e}function c(e){return Math.round(e)==e}u.prototype.exec=function(e,r){if(r&&!Array.isArray(r))throw new TypeError('Array expected as argument "params"');if("string"==typeof e){var t=s.defer();if(this.tasks.length>=this.maxQueueSize)throw new Error("Max queue size of "+this.maxQueueSize+" reached");var o=this.tasks,n={method:e,params:r,resolver:t,timeout:null};o.push(n);var i=t.promise.timeout;return t.promise.timeout=function(e){return-1!==o.indexOf(n)?(n.timeout=e,t.promise):i.call(t.promise,e)},this._next(),t.promise}if("function"==typeof e)return this.exec("run",[String(e),r]);throw new TypeError('Function or string expected as argument "method"')},u.prototype.proxy=function(){if(0<arguments.length)throw new Error("No arguments expected");var t=this;return this.exec("methods").then(function(e){var r={};return e.forEach(function(e){r[e]=function(){return t.exec(e,Array.prototype.slice.call(arguments))}}),r})},u.prototype._next=function(){if(0<this.tasks.length){var e=this._getWorker();if(e){var r=this,t=this.tasks.shift();if(t.resolver.promise.pending){var o=e.exec(t.method,t.params,t.resolver).then(r._boundNext).catch(function(){e.terminated&&(r._removeWorker(e),r._ensureMinWorkers()),r._next()});"number"==typeof t.timeout&&o.timeout(t.timeout)}else r._next()}}},u.prototype._getWorker=function(){for(var e=this.workers,r=0;r<e.length;r++){var t=e[r];if(!1===t.busy())return t}return e.length<this.maxWorkers?(t=this._createWorkerHandler(),e.push(t),t):null},u.prototype._removeWorker=function(e){i.releasePort(e.debugPort),e.terminate(),this._removeWorkerFromList(e)},u.prototype._removeWorkerFromList=function(e){var r=this.workers.indexOf(e);-1!==r&&this.workers.splice(r,1)},u.prototype.terminate=function(t,o){this.tasks.forEach(function(e){e.resolver.reject(new Error("Pool terminated"))}),this.tasks.length=0;var n=function(e){this._removeWorkerFromList(e)}.bind(this),i=[];return this.workers.slice().forEach(function(e){var r=e.terminateAndNotify(t,o).then(n);i.push(r)}),s.all(i)},u.prototype.clear=function(e){console.warn("Pool.clear() is deprecated. Use Pool.terminate() instead."),this.terminate(e)},u.prototype.stats=function(){var e=this.workers.length,r=this.workers.filter(function(e){return e.busy()}).length;return{totalWorkers:e,busyWorkers:r,idleWorkers:e-r,pendingTasks:this.tasks.length,activeTasks:r}},u.prototype._ensureMinWorkers=function(){if(this.minWorkers)for(var e=this.workers.length;e<this.minWorkers;e++)this.workers.push(this._createWorkerHandler())},u.prototype._createWorkerHandler=function(){return new o(this.script,{forkArgs:this.forkArgs,forkOpts:this.forkOpts,debugPort:i.nextAvailableStartingAt(this.debugPortStart),workerType:this.workerType})},e.exports=u},function(e,r,s){"use strict";var u=s(1),a=s(0),c=s(2);function f(){var e=d();if(!e)throw new Error("WorkerPool: workerType = 'thread' is not supported, Node >= 11.7.0 required");return e}function p(){if("function"!=typeof Worker&&("object"!=typeof Worker||"function"!=typeof Worker.prototype.constructor))throw new Error("WorkerPool: Web Workers not supported")}function d(){try{return c("worker_threads")}catch(e){if("object"==typeof e&&null!==e&&"MODULE_NOT_FOUND"===e.code)return null;throw e}}function h(e,r){var t=new r(e);return t.isBrowserWorker=!0,t.on=function(e,r){this.addEventListener(e,function(e){r(e.data)})},t.send=function(e){this.postMessage(e)},t}function l(e,r){var t=new r.Worker(e,{stdout:!1,stderr:!1});return t.isWorkerThread=!0,t.send=function(e){this.postMessage(e)},t.kill=function(){this.terminate()},t.disconnect=function(){this.terminate()},t}function k(e,r,t){var o=t.fork(e,r.forkArgs,r.forkOpts);return o.isChildProcess=!0,o}function m(e){e=e||{};var r=process.execArgv.join(" "),t=-1!==r.indexOf("--inspect"),o=-1!==r.indexOf("--debug-brk"),n=[];return t&&(n.push("--inspect="+e.debugPort),o&&n.push("--debug-brk")),process.execArgv.forEach(function(e){-1<e.indexOf("--max-old-space-size")&&n.push(e)}),Object.assign({},e,{forkArgs:e.forkArgs,forkOpts:Object.assign({},e.forkOpts,{execArgv:(e.forkOpts&&e.forkOpts.execArgv||[]).concat(n)})})}function t(e,r){var o=this,t=r||{};function n(e){for(var r in o.terminated=!0,o.terminating&&o.terminationHandler&&o.terminationHandler(o),o.terminating=!1,o.processing)void 0!==o.processing[r]&&o.processing[r].resolver.reject(e);o.processing=Object.create(null)}this.script=e||function(){if("browser"!==a.platform)return __dirname+"/worker.js";if("undefined"==typeof Blob)throw new Error("Blob not supported by the browser");if(!window.URL||"function"!=typeof window.URL.createObjectURL)throw new Error("URL.createObjectURL not supported by the browser");var e=new Blob([s(6)],{type:"text/javascript"});return window.URL.createObjectURL(e)}(),this.worker=function(e,r){if("web"===r.workerType)return p(),h(e,Worker);if("thread"===r.workerType)return l(e,t=f());if("process"!==r.workerType&&r.workerType){if("browser"===a.platform)return p(),h(e,Worker);var t=d();return t?l(e,t):k(e,m(r),c("child_process"))}return k(e,m(r),c("child_process"))}(this.script,t),this.debugPort=t.debugPort,e||(this.worker.ready=!0),this.requestQueue=[],this.worker.on("message",function(e){if("string"==typeof e&&"ready"===e)o.worker.ready=!0,o.requestQueue.forEach(o.worker.send.bind(o.worker)),o.requestQueue=[];else{var r=e.id,t=o.processing[r];void 0!==t&&(delete o.processing[r],!0===o.terminating&&o.terminate(),e.error?t.resolver.reject(function(e){for(var r=new Error(""),t=Object.keys(e),o=0;o<t.length;o++)r[t[o]]=e[t[o]];return r}(e.error)):t.resolver.resolve(e.result))}});var i=this.worker;this.worker.on("error",n),this.worker.on("exit",function(e,r){var t="Workerpool Worker terminated Unexpectedly\n";t+="    exitCode: `"+e+"`\n",t+="    signalCode: `"+r+"`\n",t+="    workerpool.script: `"+o.script+"`\n",t+="    spawnArgs: `"+i.spawnargs+"`\n",t+="    spawnfile: `"+i.spawnfile+"`\n",t+="    stdout: `"+i.stdout+"`\n",t+="    stderr: `"+i.stderr+"`\n",n(new Error(t))}),this.processing=Object.create(null),this.terminating=!1,this.terminated=!1,this.terminationHandler=null,this.lastId=0}t.prototype.methods=function(){return this.exec("methods")},t.prototype.exec=function(e,r,t){t=t||u.defer();var o=++this.lastId;this.processing[o]={id:o,resolver:t};var n={id:o,method:e,params:r};this.terminated?t.reject(new Error("Worker is terminated")):this.worker.ready?this.worker.send(n):this.requestQueue.push(n);var i=this;return t.promise.catch(function(e){if(!(e instanceof u.CancellationError||e instanceof u.TimeoutError))throw e;delete i.processing[o],i.terminate(!0)}),t.promise},t.prototype.busy=function(){return 0<Object.keys(this.processing).length},t.prototype.terminate=function(e,r){if(e){for(var t in this.processing)void 0!==this.processing[t]&&this.processing[t].resolver.reject(new Error("Worker terminated"));this.processing=Object.create(null)}if("function"==typeof r&&(this.terminationHandler=r),this.busy())this.terminating=!0;else{if(this.worker){if("function"==typeof this.worker.kill)this.worker.kill();else{if("function"!=typeof this.worker.terminate)throw new Error("Failed to terminate worker");this.worker.terminate()}this.worker=null}this.terminating=!1,this.terminated=!0,this.terminationHandler&&this.terminationHandler(this)}},t.prototype.terminateAndNotify=function(e,r){var t=u.defer();return r&&(t.promise.timeout=r),this.terminate(e,function(e){t.resolve(e)}),t.promise},e.exports=t,e.exports._tryRequireWorkerThreads=d,e.exports._setupProcessWorker=k,e.exports._setupBrowserWorker=h,e.exports._setupWorkerThreadWorker=l,e.exports.ensureWorkerThreads=f},function(e,r){e.exports='!function(o){var n={};function t(e){if(n[e])return n[e].exports;var r=n[e]={i:e,l:!1,exports:{}};return o[e].call(r.exports,r,r.exports,t),r.l=!0,r.exports}t.m=o,t.c=n,t.d=function(e,r,o){t.o(e,r)||Object.defineProperty(e,r,{enumerable:!0,get:o})},t.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},t.t=function(r,e){if(1&e&&(r=t(r)),8&e)return r;if(4&e&&"object"==typeof r&&r&&r.__esModule)return r;var o=Object.create(null);if(t.r(o),Object.defineProperty(o,"default",{enumerable:!0,value:r}),2&e&&"string"!=typeof r)for(var n in r)t.d(o,n,function(e){return r[e]}.bind(null,n));return o},t.n=function(e){var r=e&&e.__esModule?function(){return e.default}:function(){return e};return t.d(r,"a",r),r},t.o=function(e,r){return Object.prototype.hasOwnProperty.call(e,r)},t.p="",t(t.s=0)}([function(module,exports,__webpack_require__){var requireFoolWebpack=eval("typeof require !== \'undefined\' ? require : function (module) { throw new Error(\'Module \\" + module + \\" not found.\') }"),worker={};if("undefined"!=typeof self&&"function"==typeof postMessage&&"function"==typeof addEventListener)worker.on=function(e,r){addEventListener(e,function(e){r(e.data)})},worker.send=function(e){postMessage(e)};else{if("undefined"==typeof process)throw new Error("Script must be executed as a worker");var WorkerThreads;try{WorkerThreads=requireFoolWebpack("worker_threads")}catch(e){if("object"!=typeof e||null===e||"MODULE_NOT_FOUND"!=e.code)throw e}if(WorkerThreads&&null!==WorkerThreads.parentPort){var parentPort=WorkerThreads.parentPort;worker.send=parentPort.postMessage.bind(parentPort),worker.on=parentPort.on.bind(parentPort)}else worker.on=process.on.bind(process),worker.send=process.send.bind(process),worker.on("disconnect",function(){process.exit(1)})}function convertError(o){return Object.getOwnPropertyNames(o).reduce(function(e,r){return Object.defineProperty(e,r,{value:o[r],enumerable:!0})},{})}function isPromise(e){return e&&"function"==typeof e.then&&"function"==typeof e.catch}worker.methods={},worker.methods.run=function run(fn,args){var f=eval("("+fn+")");return f.apply(f,args)},worker.methods.methods=function(){return Object.keys(worker.methods)},worker.on("message",function(r){try{var e=worker.methods[r.method];if(!e)throw new Error(\'Unknown method "\'+r.method+\'"\');var o=e.apply(e,r.params);isPromise(o)?o.then(function(e){worker.send({id:r.id,result:e,error:null})}).catch(function(e){worker.send({id:r.id,result:null,error:convertError(e)})}):worker.send({id:r.id,result:o,error:null})}catch(e){worker.send({id:r.id,result:null,error:convertError(e)})}}),worker.register=function(e){if(e)for(var r in e)e.hasOwnProperty(r)&&(worker.methods[r]=e[r]);worker.send("ready")},exports.add=worker.register}]);'},function(e,r,t){"use strict";function o(){this.ports=Object.create(null),this.length=0}(e.exports=o).prototype.nextAvailableStartingAt=function(e){for(;!0===this.ports[e];)e++;if(65535<=e)throw new Error("WorkerPool debug port limit reached: "+e+">= 65535");return this.ports[e]=!0,this.length++,e},o.prototype.releasePort=function(e){delete this.ports[e],this.length--}},function(module,exports,__webpack_require__){var requireFoolWebpack=eval("typeof require !== 'undefined' ? require : function (module) { throw new Error('Module \" + module + \" not found.') }"),worker={};if("undefined"!=typeof self&&"function"==typeof postMessage&&"function"==typeof addEventListener)worker.on=function(e,r){addEventListener(e,function(e){r(e.data)})},worker.send=function(e){postMessage(e)};else{if("undefined"==typeof process)throw new Error("Script must be executed as a worker");var WorkerThreads;try{WorkerThreads=requireFoolWebpack("worker_threads")}catch(e){if("object"!=typeof e||null===e||"MODULE_NOT_FOUND"!=e.code)throw e}if(WorkerThreads&&null!==WorkerThreads.parentPort){var parentPort=WorkerThreads.parentPort;worker.send=parentPort.postMessage.bind(parentPort),worker.on=parentPort.on.bind(parentPort)}else worker.on=process.on.bind(process),worker.send=process.send.bind(process),worker.on("disconnect",function(){process.exit(1)})}function convertError(t){return Object.getOwnPropertyNames(t).reduce(function(e,r){return Object.defineProperty(e,r,{value:t[r],enumerable:!0})},{})}function isPromise(e){return e&&"function"==typeof e.then&&"function"==typeof e.catch}worker.methods={},worker.methods.run=function run(fn,args){var f=eval("("+fn+")");return f.apply(f,args)},worker.methods.methods=function(){return Object.keys(worker.methods)},worker.on("message",function(r){try{var e=worker.methods[r.method];if(!e)throw new Error('Unknown method "'+r.method+'"');var t=e.apply(e,r.params);isPromise(t)?t.then(function(e){worker.send({id:r.id,result:e,error:null})}).catch(function(e){worker.send({id:r.id,result:null,error:convertError(e)})}):worker.send({id:r.id,result:t,error:null})}catch(e){worker.send({id:r.id,result:null,error:convertError(e)})}}),worker.register=function(e){if(e)for(var r in e)e.hasOwnProperty(r)&&(worker.methods[r]=e[r]);worker.send("ready")},exports.add=worker.register}],e={},g.m=d,g.c=e,g.d=function(e,r,t){g.o(e,r)||Object.defineProperty(e,r,{enumerable:!0,get:t})},g.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},g.t=function(r,e){if(1&e&&(r=g(r)),8&e)return r;if(4&e&&"object"==typeof r&&r&&r.__esModule)return r;var t=Object.create(null);if(g.r(t),Object.defineProperty(t,"default",{enumerable:!0,value:r}),2&e&&"string"!=typeof r)for(var o in r)g.d(t,o,function(e){return r[e]}.bind(null,o));return t},g.n=function(e){var r=e&&e.__esModule?function(){return e.default}:function(){return e};return g.d(r,"a",r),r},g.o=function(e,r){return Object.prototype.hasOwnProperty.call(e,r)},g.p="",g(g.s=3);function g(r){if(e[r])return e[r].exports;var t=e[r]={i:r,l:!1,exports:{}};return d[r].call(t.exports,t,t.exports,g),t.l=!0,t.exports}var d,e});
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const implementation_browser_1 = __importDefault(require("./implementation.browser"));
+const implementation_tiny_worker_1 = __importDefault(require("./implementation.tiny-worker"));
+const implementation_worker_threads_1 = __importDefault(require("./implementation.worker_threads"));
+const runningInNode = typeof process !== 'undefined' && process.arch !== 'browser' && 'pid' in process;
+function selectNodeImplementation() {
+    try {
+        implementation_worker_threads_1.default.testImplementation();
+        return implementation_worker_threads_1.default;
+    }
+    catch (error) {
+        return implementation_tiny_worker_1.default;
+    }
+}
+exports.default = runningInNode
+    ? selectNodeImplementation()
+    : implementation_browser_1.default;
 
-},{"process":"../../../../usr/local/lib/node_modules/parcel-bundler/node_modules/process/browser.js"}],"index.js":[function(require,module,exports) {
+},{"./implementation.browser":"../node_modules/threads/dist/worker/implementation.browser.js","./implementation.tiny-worker":"../../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/_empty.js","./implementation.worker_threads":"../../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/_empty.js","process":"../../../../../usr/local/lib/node_modules/parcel-bundler/node_modules/process/browser.js"}],"../node_modules/threads/dist/worker/index.js":[function(require,module,exports) {
+var process = require("process");
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const is_observable_1 = __importDefault(require("is-observable"));
+const common_1 = require("../common");
+const transferable_1 = require("../transferable");
+const messages_1 = require("../types/messages");
+const implementation_1 = __importDefault(require("./implementation"));
+var transferable_2 = require("../transferable");
+exports.Transfer = transferable_2.Transfer;
+let exposeCalled = false;
+const isMasterJobRunMessage = (thing) => thing && thing.type === messages_1.MasterMessageType.run;
+/**
+ * There are issues with `is-observable` not recognizing zen-observable's instances.
+ * We are using `observable-fns`, but it's based on zen-observable, too.
+ */
+const isObservable = (thing) => is_observable_1.default(thing) || isZenObservable(thing);
+function isZenObservable(thing) {
+    return thing && typeof thing === "object" && typeof thing.subscribe === "function";
+}
+function deconstructTransfer(thing) {
+    return transferable_1.isTransferDescriptor(thing)
+        ? { payload: thing.send, transferables: thing.transferables }
+        : { payload: thing, transferables: undefined };
+}
+function postFunctionInitMessage() {
+    const initMessage = {
+        type: messages_1.WorkerMessageType.init,
+        exposed: {
+            type: "function"
+        }
+    };
+    implementation_1.default.postMessageToMaster(initMessage);
+}
+function postModuleInitMessage(methodNames) {
+    const initMessage = {
+        type: messages_1.WorkerMessageType.init,
+        exposed: {
+            type: "module",
+            methods: methodNames
+        }
+    };
+    implementation_1.default.postMessageToMaster(initMessage);
+}
+function postJobErrorMessage(uid, rawError) {
+    const { payload: error, transferables } = deconstructTransfer(rawError);
+    const errorMessage = {
+        type: messages_1.WorkerMessageType.error,
+        uid,
+        error: common_1.serializeError(error)
+    };
+    implementation_1.default.postMessageToMaster(errorMessage, transferables);
+}
+function postJobResultMessage(uid, completed, resultValue) {
+    const { payload, transferables } = deconstructTransfer(resultValue);
+    const resultMessage = {
+        type: messages_1.WorkerMessageType.result,
+        uid,
+        complete: completed ? true : undefined,
+        payload
+    };
+    implementation_1.default.postMessageToMaster(resultMessage, transferables);
+}
+function postJobStartMessage(uid, resultType) {
+    const startMessage = {
+        type: messages_1.WorkerMessageType.running,
+        uid,
+        resultType
+    };
+    implementation_1.default.postMessageToMaster(startMessage);
+}
+function postUncaughtErrorMessage(error) {
+    const errorMessage = {
+        type: messages_1.WorkerMessageType.uncaughtError,
+        error: common_1.serializeError(error)
+    };
+    implementation_1.default.postMessageToMaster(errorMessage);
+}
+function runFunction(jobUID, fn, args) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let syncResult;
+        try {
+            syncResult = fn(...args);
+        }
+        catch (error) {
+            return postJobErrorMessage(jobUID, error);
+        }
+        const resultType = isObservable(syncResult) ? "observable" : "promise";
+        postJobStartMessage(jobUID, resultType);
+        if (isObservable(syncResult)) {
+            syncResult.subscribe(value => postJobResultMessage(jobUID, false, value), error => postJobErrorMessage(jobUID, error), () => postJobResultMessage(jobUID, true));
+        }
+        else {
+            try {
+                const result = yield syncResult;
+                postJobResultMessage(jobUID, true, result);
+            }
+            catch (error) {
+                postJobErrorMessage(jobUID, error);
+            }
+        }
+    });
+}
+/**
+ * Expose a function or a module (an object whose values are functions)
+ * to the main thread. Must be called exactly once in every worker thread
+ * to signal its API to the main thread.
+ *
+ * @param exposed Function or object whose values are functions
+ */
+function expose(exposed) {
+    if (!implementation_1.default.isWorkerRuntime()) {
+        throw Error("expose() called in the master thread.");
+    }
+    if (exposeCalled) {
+        throw Error("expose() called more than once. This is not possible. Pass an object to expose() if you want to expose multiple functions.");
+    }
+    exposeCalled = true;
+    if (typeof exposed === "function") {
+        implementation_1.default.subscribeToMasterMessages(messageData => {
+            if (isMasterJobRunMessage(messageData) && !messageData.method) {
+                runFunction(messageData.uid, exposed, messageData.args);
+            }
+        });
+        postFunctionInitMessage();
+    }
+    else if (typeof exposed === "object" && exposed) {
+        implementation_1.default.subscribeToMasterMessages(messageData => {
+            if (isMasterJobRunMessage(messageData) && messageData.method) {
+                runFunction(messageData.uid, exposed[messageData.method], messageData.args);
+            }
+        });
+        const methodNames = Object.keys(exposed).filter(key => typeof exposed[key] === "function");
+        postModuleInitMessage(methodNames);
+    }
+    else {
+        throw Error(`Invalid argument passed to expose(). Expected a function or an object, got: ${exposed}`);
+    }
+}
+exports.expose = expose;
+if (typeof self !== "undefined" && typeof self.addEventListener === "function" && implementation_1.default.isWorkerRuntime()) {
+    self.addEventListener("error", event => {
+        // Post with some delay, so the master had some time to subscribe to messages
+        setTimeout(() => postUncaughtErrorMessage(event.error || event), 250);
+    });
+    self.addEventListener("unhandledrejection", event => {
+        const error = event.reason;
+        if (error && typeof error.message === "string") {
+            // Post with some delay, so the master had some time to subscribe to messages
+            setTimeout(() => postUncaughtErrorMessage(error), 250);
+        }
+    });
+}
+if (typeof process !== "undefined" && typeof process.on === "function" && implementation_1.default.isWorkerRuntime()) {
+    process.on("uncaughtException", (error) => {
+        // Post with some delay, so the master had some time to subscribe to messages
+        setTimeout(() => postUncaughtErrorMessage(error), 250);
+    });
+    process.on("unhandledRejection", (error) => {
+        if (error && typeof error.message === "string") {
+            // Post with some delay, so the master had some time to subscribe to messages
+            setTimeout(() => postUncaughtErrorMessage(error), 250);
+        }
+    });
+}
+
+},{"is-observable":"../node_modules/is-observable/index.js","../common":"../node_modules/threads/dist/common.js","../transferable":"../node_modules/threads/dist/transferable.js","../types/messages":"../node_modules/threads/dist/types/messages.js","./implementation":"../node_modules/threads/dist/worker/implementation.js","process":"../../../../../usr/local/lib/node_modules/parcel-bundler/node_modules/process/browser.js"}],"../node_modules/threads/worker.js":[function(require,module,exports) {
+module.exports = require("./dist/worker/index")
+
+},{"./dist/worker/index":"../node_modules/threads/dist/worker/index.js"}],"worker.js":[function(require,module,exports) {
 "use strict";
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
+var _worker = require("threads/worker");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var workerpool = require('workerpool');
+importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js");
+importScripts("https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0");
+tf.setBackend('cpu');
+var model;
 
-var recordedTimes = [];
-
-function recordTimeStart(activityName) {
-  recordedTimes[activityName] = {
-    "start": new Date().getTime()
-  };
-  var tableRow = document.createElement("tr");
-  var operationTd = document.createElement("td");
-  var durationTd = document.createElement("td");
-  operationTd.innerText = activityName;
-  durationTd.innerText = "(in progress)";
-  tableRow.appendChild(operationTd);
-  tableRow.appendChild(durationTd);
-  document.getElementById("times").appendChild(tableRow);
+function detectCat(_x, _x2, _x3) {
+  return _detectCat.apply(this, arguments);
 }
 
-;
-
-function recordTimeEnd(activityName) {
-  recordedTimes[activityName]["end"] = new Date().getTime();
-  recordedTimes[activityName]["duration"] = recordedTimes[activityName]["end"] - recordedTimes[activityName]["start"];
-  var timesTbody = document.getElementById("times");
-  var tableRow = document.createElement("tr");
-  var operationTd = document.createElement("td");
-  var durationTd = document.createElement("td");
-  operationTd.innerText = activityName;
-  durationTd.innerText = recordedTimes[activityName]["duration"];
-  tableRow.appendChild(operationTd);
-  tableRow.appendChild(durationTd);
-  timesTbody.removeChild(timesTbody.lastChild);
-  timesTbody.appendChild(tableRow);
-}
-
-;
-
-function loadImage(_x, _x2) {
-  return _loadImage.apply(this, arguments);
-}
-
-function _loadImage() {
-  _loadImage = (0, _asyncToGenerator2.default)(
+function _detectCat() {
+  _detectCat = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
-  _regenerator.default.mark(function _callee(imageName, imagesDiv) {
-    var imageNode, onImageLoad;
-    return _regenerator.default.wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            onImageLoad = function _ref() {
-              return new Promise(function (resolve) {
-                imageNode.addEventListener("load", resolve, {
-                  once: true
-                });
-              });
-            };
-
-            imageNode = document.createElement("img");
-            imageNode.src = "./images/" + imageName;
-            imagesDiv.appendChild(imageNode);
-            _context.next = 6;
-            return onImageLoad();
-
-          case 6:
-            return _context.abrupt("return", imageNode);
-
-          case 7:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-  return _loadImage.apply(this, arguments);
-}
-
-function processImage(imageName, imageNode, pool) {
-  var canvas = document.createElement("canvas");
-  canvas.setAttribute("width", imageNode.naturalWidth);
-  canvas.setAttribute("height", imageNode.naturalHeight);
-  var canvasContext = canvas.getContext('2d');
-  canvasContext.drawImage(imageNode, 0, 0);
-  var imageData = canvasContext.getImageData(0, 0, imageNode.naturalWidth, imageNode.naturalHeight);
-  var dataObj = {
-    name: imageName,
-    pixels: imageData.data.buffer,
-    width: imageNode.naturalWidth,
-    height: imageNode.naturalHeight
-  };
-  console.log("Processing image");
-  var worker = pool.getW;
-  pool.queue(function (handleImage) {
-    handleImage(dataObj).then(function (foundCat) {
-      console.log("Found cat?", foundCat);
-    });
-  });
-}
-
-var imageNames = ["butterfly.png", "crocodiles.png", "cat.png", "birds_rainbow-lorakeets.png", "boxer-getting-tan.png", "boxer-laying-down.png"];
-var imageNodes = [];
-var imagesDiv = document.getElementById("images");
-var pool = new WorkerPool("worker.js");
-
-function main() {
-  return _main.apply(this, arguments);
-}
-
-function _main() {
-  _main = (0, _asyncToGenerator2.default)(
-  /*#__PURE__*/
-  _regenerator.default.mark(function _callee2() {
-    var i, _imageNode;
-
+  _regenerator.default.mark(function _callee2(model, imageName, img) {
+    var foundCat, predictions;
     return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            i = 0;
+            foundCat = false;
+            _context2.next = 3;
+            return model.classify(img);
 
-          case 1:
-            if (!(i < imageNames.length)) {
-              _context2.next = 9;
-              break;
-            }
-
-            _context2.next = 4;
-            return loadImage(imageNames[i], imagesDiv);
-
-          case 4:
-            _imageNode = _context2.sent;
-            processImage(imageNames[i], _imageNode, pool);
+          case 3:
+            predictions = _context2.sent;
+            predictions.forEach(function (prediction) {
+              var classes = prediction.className.split(",");
+              classes.forEach(function (predictionClass) {
+                if (predictionClass.endsWith("cat")) {
+                  foundCat = true;
+                }
+              });
+            });
+            return _context2.abrupt("return", foundCat);
 
           case 6:
-            i++;
-            _context2.next = 1;
-            break;
-
-          case 9:
           case "end":
             return _context2.stop();
         }
       }
     }, _callee2);
   }));
-  return _main.apply(this, arguments);
+  return _detectCat.apply(this, arguments);
 }
 
-main().catch(console.error); // https://www.kevinhoyt.com/2018/10/23/image-processing-in-a-web-worker/
-// https://www.kevinhoyt.com/2018/10/31/transferable-imagedata/
-// https://stackoverflow.com/questions/54359728/tensorflow-js-in-webworkers
-// https://github.com/tensorflow/tfjs/issues/102
-// https://developer.mozilla.org/en-US/docs/Web/API/NavigatorConcurrentHardware/hardwareConcurrency
-},{"@babel/runtime/regenerator":"node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"node_modules/@babel/runtime/helpers/asyncToGenerator.js","workerpool":"node_modules/workerpool/dist/workerpool.min.js"}],"../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+(0, _worker.expose)(
+/*#__PURE__*/
+function () {
+  var _handleImage = (0, _asyncToGenerator2.default)(
+  /*#__PURE__*/
+  _regenerator.default.mark(function _callee(objData) {
+    var imageName, imageData;
+    return _regenerator.default.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            imageName = objData.name;
+            imageData = new ImageData(new Uint8ClampedArray(objData.pixels), objData.width, objData.height);
+
+            if (model) {
+              _context.next = 11;
+              break;
+            }
+
+            _context.next = 5;
+            return mobilenet.load();
+
+          case 5:
+            model = _context.sent;
+            _context.next = 8;
+            return detectCat(model, imageName, imageData);
+
+          case 8:
+            return _context.abrupt("return", _context.sent);
+
+          case 11:
+            _context.next = 13;
+            return detectCat(model, imageName, imageData);
+
+          case 13:
+            return _context.abrupt("return", _context.sent);
+
+          case 14:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+
+  function handleImage(_x4) {
+    return _handleImage.apply(this, arguments);
+  }
+
+  return handleImage;
+}());
+/*
+expose(function slowSquare(n) {
+    var i = 0;
+    while (++i < n * n) {}
+    return i;
+})*/
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","threads/worker":"../node_modules/threads/worker.js"}],"../../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -1315,7 +1614,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52106" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62192" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
@@ -1491,5 +1790,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","index.js"], null)
-//# sourceMappingURL=/parallel-demo.e31bb0bc.js.map
+},{}]},{},["../../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","worker.js"], null)
+//# sourceMappingURL=/worker.ab30da2c.js.map
