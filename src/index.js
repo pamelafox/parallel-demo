@@ -1,10 +1,12 @@
 import { spawn, Pool } from "threads";
 import Highcharts from "highcharts";
+
 import HC_more from 'highcharts/modules/gantt';
 HC_more(Highcharts);
 
 import "threads/register";
 import {imageNames} from "./images.js";
+import "./kittydar-0.1.6.js";
 
 async function loadImage(imageName, imagesDiv) {
     const containerNode = document.createElement("div");
@@ -29,7 +31,9 @@ async function loadImage(imageName, imagesDiv) {
     return imageNode;
 }
 
-function processImage(imageName, imageNode, pool) {
+
+
+function processImage(imageNode, pool) {
     const canvas = document.createElement("canvas");
     canvas.setAttribute("width", imageNode.naturalWidth);
     canvas.setAttribute("height", imageNode.naturalHeight);
@@ -37,30 +41,53 @@ function processImage(imageName, imageNode, pool) {
     canvasContext.drawImage(imageNode, 0, 0);
     const imageData = canvasContext.getImageData(0, 0, imageNode.naturalWidth, imageNode.naturalHeight);
     const dataObj = {
-        name: imageName,
         pixels: imageData.data.buffer,
         width: imageNode.naturalWidth,
         height: imageNode.naturalHeight
     };
-    pool.queue(async handleImage => {
-        return handleImage(dataObj).then(foundCat => {
-            if (foundCat) {
-                imageNode.nextSibling.className = "overlay overlay-yes";
-                imageNode.nextSibling.innerText = "✓";
-            } else {
-                imageNode.nextSibling.classList.add("overlay-no");
-                imageNode.nextSibling.innerText = "✗";
-            }
+    if (ALGO === "kittydar") {
+        pool.queue(async handleCatImage => {
+            return handleCatImage(dataObj).then(foundCat => {
+                if (foundCat.length > 0) {
+                    const resizedScale = imageNode.width/imageNode.naturalWidth;
+                    imageNode.nextSibling.className = "detection";
+                    imageNode.nextSibling.innerText = "";
+                    imageNode.nextSibling.style.left = (foundCat[0].x * resizedScale) + "px";
+                    imageNode.nextSibling.style.top = (foundCat[0].y * resizedScale) + "px";
+                    imageNode.nextSibling.style.width = (foundCat[0].width * resizedScale) + "px";
+                    imageNode.nextSibling.style.height = (foundCat[0].height * resizedScale) + "px";
+                    numCats++;
+                } else {
+                    imageNode.nextSibling.classList.add("overlay-no");
+                    imageNode.nextSibling.innerText = "✗";
+                }
+            });
         });
-    });
+    } else {
+        pool.queue(async handleImage => {
+            return handleImage(dataObj).then(foundCat => {
+                if (foundCat) {
+                    imageNode.nextSibling.className = "overlay overlay-yes";
+                    imageNode.nextSibling.innerText = "✓";
+                    numCats++;
+                } else {
+                    imageNode.nextSibling.classList.add("overlay-no");
+                    imageNode.nextSibling.innerText = "✗";
+                }
+            });
+        });
+    }
 }
 
 
-let numWorkers, numImages, chart, pool, startTime, endTime, imageNodes;
+let numWorkers, numImages, numCats, chart, pool, startTime, endTime, imageNodes;
+let ALGO = "kittydar";
 
 async function startWorkers() {
     startTime = new Date().getTime();
-    let categoryNames = [];
+    numCats = 0;
+
+    let categoryNames = ["Main"];
     for (let i = 0; i < numWorkers; i++) {
         categoryNames.push('Worker ' + (i + 1));
     }
@@ -82,59 +109,98 @@ async function startWorkers() {
             visible: false,
             opposite: false
         }, {
-            min: new Date().getTime() - 1000
+            min: startTime - 1000
         }],
         series: []
     });
+    let chartRows = [];
+    chartRows[0] = chart.addSeries({name: "Main", data: []});
+    chartRows[0].addPoint({
+        name: 'Initializing',
+        start: startTime,
+        end: startTime,
+        y: 0,
+        milestone: true
+    }, true);
 
-    pool = Pool(() => spawn(new Worker("./worker.js")), numWorkers);
+    pool = Pool(() => {
+        if (ALGO === "kittydar") {
+            return spawn(new Worker("./worker-kittydar.js"));
+        } else {
+            return spawn(new Worker("./worker-tensorflow.js"));
+        }
+
+    }, numWorkers);
 
     let numTasks = 0;
     let workersTasks = {};
-    let workersSeries = [];
     pool.events().subscribe(event => {
         const workerID = event.workerID;
         if (event.type === "taskQueued") {
             numTasks++;
         } else if (event.type === "taskStart") {
-            if (!workersTasks[workerID]) {
-                workersSeries[event.workerID] = chart.addSeries({name: 'Worker ' + event.workerID, data: []});
+            // Add a point to the main timeline
+            const mainPoints = chartRows[0].getValidPoints();
+            if (mainPoints.length === 1) {
+                const lastPoint = mainPoints.pop();
+                chartRows[0].addPoint({
+                    name: "Tasks queued",
+                    start: lastPoint.end,
+                    end: new Date().getTime(),
+                    y: 0
+                }, true);
             }
-            workersSeries[event.workerID].addPoint({
+            // Now update this worker's timeline
+            if (!workersTasks[workerID]) {
+                chartRows[event.workerID] = chart.addSeries({name: 'Worker ' + event.workerID, data: []});
+            }
+            chartRows[event.workerID].addPoint({
                 name: 'Task ' + event.taskID + ': Started',
                 start: new Date().getTime(),
                 end: new Date().getTime(),
-                y: workerID - 1,
+                y: workerID,
                 milestone: true
             }, true);
             imageNodes[event.taskID - 1].nextSibling.className = "overlay";
             imageNodes[event.taskID - 1].nextSibling.innerHTML = "<div class='loader'></div>";
         } else if (event.type === "taskCompleted") { // TODO: other termination states
-            const allPoints = workersSeries[event.workerID].getValidPoints();
+            const allPoints = chartRows[event.workerID].getValidPoints();
             const lastPoint = allPoints.pop();
-            workersSeries[event.workerID].addPoint({
+            chartRows[event.workerID].addPoint({
                 name: 'Task ' + event.taskID,
                 start: lastPoint.end,
                 end: new Date().getTime(),
-                y: workerID - 1
+                y: workerID
             }, true);
-            workersSeries[event.workerID].removePoint(allPoints.length);
+            chartRows[event.workerID].removePoint(allPoints.length);
         } else if (event.type === "taskQueueDrained") {
             endTime = new Date().getTime();
             const duration = (endTime - startTime)/1000;
-            document.getElementById("status").innerText = "Done processing. Duration: " + duration.toFixed(2) + " seconds";
+            document.getElementById("status").innerHTML =
+                `Done processing.
+                Detected: <span class='special'>${numCats}</span> cats.
+                Processing time: ${duration.toFixed(2)} seconds.`;
         }
     });
 
+    document.getElementById("status").innerHTML = "";
     imagesDiv.innerHTML = "";
     imageNodes = [];
 
     const shuffledImageNames = imageNames.sort(() => Math.random() - 0.5);
     for (let i = 0; i < numImages; i++) {
         const imageName = shuffledImageNames[i];
-        const imageNode = await loadImage(imageName, imagesDiv);
-        imageNodes[i] = imageNode;
-        processImage(imageName, imageNode, pool);
+        imageNodes[i] = await loadImage(imageName, imagesDiv);
+    }
+    chartRows[0].addPoint({
+        name: "Images loaded",
+        start: startTime,
+        end: new Date().getTime(),
+        y: 0
+    }, true);
+    chartRows[0].removePoint(0);
+    for (let i = 0; i < imageNodes.length; i++) {
+        processImage(imageNodes[i], pool);
     }
 }
 
@@ -144,6 +210,7 @@ document.getElementById("workersRange").setAttribute("max", maxWorkers);
 document.getElementById("workersRange").setAttribute("value", maxWorkers);
 const maxImages = imageNames.length;
 document.getElementById("imagesRange").setAttribute("max", maxImages);
+document.getElementById("imagesRange").setAttribute("value", maxImages);
 
 var updateNumWorkers = function() {
     const val = document.getElementById("workersRange").value;

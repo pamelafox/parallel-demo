@@ -6,7 +6,7 @@ tf.setBackend('cpu');
 
 let model;
 
-async function detectCat(model, imageName, img) {
+async function detectCat(model, img) {
     let foundCat = false;
     const predictions = await model.classify(img);
     predictions.forEach((prediction) => {
@@ -21,7 +21,6 @@ async function detectCat(model, imageName, img) {
 }
 
 expose(async function handleImage(objData) {
-        let imageName = objData.name;
         let imageData = new ImageData(
             new Uint8ClampedArray(objData.pixels),
             objData.width,
@@ -29,16 +28,9 @@ expose(async function handleImage(objData) {
         );
         if (!model) {
             model = await mobilenet.load();
-            return await detectCat(model, imageName, imageData);
+            return await detectCat(model, imageData);
         } else {
-            return await detectCat(model, imageName, imageData);
+            return await detectCat(model, imageData);
         }
     }
-)
-
-/*
-expose(function slowSquare(n) {
-    var i = 0;
-    while (++i < n * n) {}
-    return i;
-})*/
+);
