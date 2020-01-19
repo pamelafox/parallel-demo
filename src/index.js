@@ -16,7 +16,9 @@ async function loadImage(imageName, imagesDiv) {
     overlayNode.innerText = "?";
     const imageNode = document.createElement("img");
     imageNode.className = "image";
-    imageNode.src = "./images/" + imageName;
+    // Bust the cache to decrease variability across runs
+    const cacheBust = new Date().getTime();
+    imageNode.src = `./images/${imageName}?nocache=${cacheBust}`;
     containerNode.appendChild(imageNode);
     containerNode.appendChild(overlayNode);
     imagesDiv.appendChild(containerNode);
@@ -89,7 +91,7 @@ async function startWorkers() {
 
     let categoryNames = ["Main"];
     for (let i = 0; i < numWorkers; i++) {
-        categoryNames.push('Worker ' + (i + 1));
+        categoryNames.push(`Worker ${(i + 1)}`);
     }
     Highcharts.setOptions({
         chart: {
@@ -122,6 +124,10 @@ async function startWorkers() {
         y: 0,
         milestone: true
     }, true);
+    for (let i = 0; i < numWorkers; i++) {
+        const workerID = i + 1;
+        chartRows[workerID] = chart.addSeries({name: `Worker ${workerID}`, data: []});
+    }
 
     pool = Pool(() => {
         if (ALGO === "kittydar") {
@@ -151,9 +157,6 @@ async function startWorkers() {
                 }, true);
             }
             // Now update this worker's timeline
-            if (!workersTasks[workerID]) {
-                chartRows[event.workerID] = chart.addSeries({name: 'Worker ' + event.workerID, data: []});
-            }
             chartRows[event.workerID].addPoint({
                 name: 'Task ' + event.taskID + ': Started',
                 start: new Date().getTime(),
@@ -177,8 +180,8 @@ async function startWorkers() {
             endTime = new Date().getTime();
             const duration = (endTime - startTime)/1000;
             document.getElementById("status").innerHTML =
-                `Done processing.
-                Detected: <span class='special'>${numCats}</span> cats.
+                `Done processing.<br>
+                Detected: ${numCats} cats.<br>
                 Processing time: ${duration.toFixed(2)} seconds.`;
         }
     });

@@ -34894,7 +34894,7 @@ function _loadImage() {
   _loadImage = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
   _regenerator.default.mark(function _callee3(imageName, imagesDiv) {
-    var containerNode, overlayNode, imageNode, onImageLoad;
+    var containerNode, overlayNode, imageNode, cacheBust, onImageLoad;
     return _regenerator.default.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -34913,18 +34913,20 @@ function _loadImage() {
             overlayNode.className = "overlay overlay-unknown";
             overlayNode.innerText = "?";
             imageNode = document.createElement("img");
-            imageNode.className = "image";
-            imageNode.src = "./images/" + imageName;
+            imageNode.className = "image"; // Bust the cache to decrease variability across runs
+
+            cacheBust = new Date().getTime();
+            imageNode.src = "./images/".concat(imageName, "?nocache=").concat(cacheBust);
             containerNode.appendChild(imageNode);
             containerNode.appendChild(overlayNode);
             imagesDiv.appendChild(containerNode);
-            _context3.next = 14;
+            _context3.next = 15;
             return onImageLoad();
 
-          case 14:
+          case 15:
             return _context3.abrupt("return", imageNode);
 
-          case 15:
+          case 16:
           case "end":
             return _context3.stop();
         }
@@ -35034,7 +35036,7 @@ function _startWorkers() {
   _startWorkers = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
   _regenerator.default.mark(function _callee4() {
-    var categoryNames, i, chartRows, numTasks, workersTasks, shuffledImageNames, _i, imageName, _i2;
+    var categoryNames, i, chartRows, _i, workerID, numTasks, workersTasks, shuffledImageNames, _i2, imageName, _i3;
 
     return _regenerator.default.wrap(function _callee4$(_context4) {
       while (1) {
@@ -35045,7 +35047,7 @@ function _startWorkers() {
             categoryNames = ["Main"];
 
             for (i = 0; i < numWorkers; i++) {
-              categoryNames.push('Worker ' + (i + 1));
+              categoryNames.push("Worker ".concat(i + 1));
             }
 
             _highcharts.default.setOptions({
@@ -35083,6 +35085,15 @@ function _startWorkers() {
               y: 0,
               milestone: true
             }, true);
+
+            for (_i = 0; _i < numWorkers; _i++) {
+              workerID = _i + 1;
+              chartRows[workerID] = chart.addSeries({
+                name: "Worker ".concat(workerID),
+                data: []
+              });
+            }
+
             pool = (0, _threads.Pool)(function () {
               if (ALGO === "kittydar") {
                 return (0, _threads.spawn)(new Worker("/worker-kittydar.24a59044.js"));
@@ -35112,13 +35123,6 @@ function _startWorkers() {
                 } // Now update this worker's timeline
 
 
-                if (!workersTasks[workerID]) {
-                  chartRows[event.workerID] = chart.addSeries({
-                    name: 'Worker ' + event.workerID,
-                    data: []
-                  });
-                }
-
                 chartRows[event.workerID].addPoint({
                   name: 'Task ' + event.taskID + ': Started',
                   start: new Date().getTime(),
@@ -35144,7 +35148,7 @@ function _startWorkers() {
               } else if (event.type === "taskQueueDrained") {
                 endTime = new Date().getTime();
                 var duration = (endTime - startTime) / 1000;
-                document.getElementById("status").innerHTML = "Done processing.\n                Detected: <span class='special'>".concat(numCats, "</span> cats.\n                Processing time: ").concat(duration.toFixed(2), " seconds.");
+                document.getElementById("status").innerHTML = "Done processing.<br>\n                Detected: ".concat(numCats, " cats.<br>\n                Processing time: ").concat(duration.toFixed(2), " seconds.");
               }
             });
             document.getElementById("status").innerHTML = "";
@@ -35153,27 +35157,27 @@ function _startWorkers() {
             shuffledImageNames = _images.imageNames.sort(function () {
               return Math.random() - 0.5;
             });
-            _i = 0;
+            _i2 = 0;
 
-          case 18:
-            if (!(_i < numImages)) {
-              _context4.next = 26;
+          case 19:
+            if (!(_i2 < numImages)) {
+              _context4.next = 27;
               break;
             }
 
-            imageName = shuffledImageNames[_i];
-            _context4.next = 22;
+            imageName = shuffledImageNames[_i2];
+            _context4.next = 23;
             return loadImage(imageName, imagesDiv);
 
-          case 22:
-            imageNodes[_i] = _context4.sent;
-
           case 23:
-            _i++;
-            _context4.next = 18;
+            imageNodes[_i2] = _context4.sent;
+
+          case 24:
+            _i2++;
+            _context4.next = 19;
             break;
 
-          case 26:
+          case 27:
             chartRows[0].addPoint({
               name: "Images loaded",
               start: startTime,
@@ -35182,11 +35186,11 @@ function _startWorkers() {
             }, true);
             chartRows[0].removePoint(0);
 
-            for (_i2 = 0; _i2 < imageNodes.length; _i2++) {
-              processImage(imageNodes[_i2], pool);
+            for (_i3 = 0; _i3 < imageNodes.length; _i3++) {
+              processImage(imageNodes[_i3], pool);
             }
 
-          case 29:
+          case 30:
           case "end":
             return _context4.stop();
         }
@@ -35253,7 +35257,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62415" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52013" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
