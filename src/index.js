@@ -208,6 +208,7 @@ const imagesDiv = document.getElementById("images");
 const maxWorkers = navigator.hardwareConcurrency;
 document.getElementById("workersRange").setAttribute("max", maxWorkers);
 document.getElementById("workersRange").setAttribute("value", maxWorkers);
+document.getElementById("concurrency").innerText = navigator.hardwareConcurrency;
 const maxImages = imageNames.length;
 document.getElementById("imagesRange").setAttribute("max", maxImages);
 document.getElementById("imagesRange").setAttribute("value", maxImages);
@@ -217,14 +218,14 @@ var updateNumWorkers = function() {
     document.getElementById("workersRangeVal").innerText = val;
     numWorkers = parseInt(val, 10);
 };
-document.getElementById("workersRange").addEventListener("change", updateNumWorkers);
+document.getElementById("workersRange").addEventListener("input", updateNumWorkers);
 updateNumWorkers();
 var updateNumImages = function() {
     const val = document.getElementById("imagesRange").value;
     document.getElementById("imagesRangeVal").innerText = val;
     numImages = parseInt(val, 10);
 };
-document.getElementById("imagesRange").addEventListener("change", updateNumImages);
+document.getElementById("imagesRange").addEventListener("input", updateNumImages);
 updateNumImages();
 
 document.getElementById("processButton").addEventListener("click", () => {

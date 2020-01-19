@@ -35200,6 +35200,7 @@ var imagesDiv = document.getElementById("images");
 var maxWorkers = navigator.hardwareConcurrency;
 document.getElementById("workersRange").setAttribute("max", maxWorkers);
 document.getElementById("workersRange").setAttribute("value", maxWorkers);
+document.getElementById("concurrency").innerText = navigator.hardwareConcurrency;
 var maxImages = _images.imageNames.length;
 document.getElementById("imagesRange").setAttribute("max", maxImages);
 document.getElementById("imagesRange").setAttribute("value", maxImages);
@@ -35210,7 +35211,7 @@ var updateNumWorkers = function updateNumWorkers() {
   numWorkers = parseInt(val, 10);
 };
 
-document.getElementById("workersRange").addEventListener("change", updateNumWorkers);
+document.getElementById("workersRange").addEventListener("input", updateNumWorkers);
 updateNumWorkers();
 
 var updateNumImages = function updateNumImages() {
@@ -35219,7 +35220,7 @@ var updateNumImages = function updateNumImages() {
   numImages = parseInt(val, 10);
 };
 
-document.getElementById("imagesRange").addEventListener("change", updateNumImages);
+document.getElementById("imagesRange").addEventListener("input", updateNumImages);
 updateNumImages();
 document.getElementById("processButton").addEventListener("click", function () {
   startWorkers().catch(console.error);
@@ -35252,7 +35253,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53890" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62415" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
