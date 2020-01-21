@@ -214,3 +214,42 @@ button.primary span {
     box-shadow: 0em -2.6em 0em 0em rgba(255, 255, 255, 0.2), 1.8em -1.8em 0 0em rgba(255, 255, 255, 0.2), 2.5em 0em 0 0em rgba(255, 255, 255, 0.2), 1.75em 1.75em 0 0em rgba(255, 255, 255, 0.2), 0em 2.5em 0 0em rgba(255, 255, 255, 0.2), -1.8em 1.8em 0 0em rgba(255, 255, 255, 0.5), -2.6em 0em 0 0em rgba(255, 255, 255, 0.7), -1.8em -1.8em 0 0em #ffffff;
   }
 }
+
+/* Preload images loader */
+
+.preloader {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.preloader div {
+  display: inline-block;
+  position: absolute;
+  left: 8px;
+  width: 16px;
+  background: #666;
+  animation: preloader-anim 1.2s cubic-bezier(0, 0.5, 0.5, 1) infinite;
+}
+.preloader div:nth-child(1) {
+  left: 8px;
+  animation-delay: -0.24s;
+}
+.preloader div:nth-child(2) {
+  left: 32px;
+  animation-delay: -0.12s;
+}
+.preloader div:nth-child(3) {
+  left: 56px;
+  animation-delay: 0;
+}
+@keyframes preloader-anim {
+  0% {
+    top: 8px;
+    height: 64px;
+  }
+  50%, 100% {
+    top: 24px;
+    height: 32px;
+  }
+}

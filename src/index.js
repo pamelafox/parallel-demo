@@ -24,7 +24,7 @@ function preloadImage(imageName) {
         numImagesLoaded++;
         if (numImagesLoaded === imageNames.length) {
             imagesLoaded = true;
-            document.getElementById("images").innerHTML = "";
+            document.getElementById("loader").style.display = "none";
             if (startOnceLoaded) {
                 startWorkers();
             }
@@ -282,8 +282,6 @@ document.getElementById("processButton").addEventListener("click", () => {
         startWorkers().catch(console.error);
     }
 });
-
-document.getElementById("images").innerHTML = "<div class='loader'></div>";
 
 for (let i = 0; i < imageNames.length; i++) {
     imagesMap[imageNames[i]] = preloadImage(imageNames[i]);
