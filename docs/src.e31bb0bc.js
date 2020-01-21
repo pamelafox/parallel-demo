@@ -34902,7 +34902,9 @@ function preloadImage(imageName) {
 
     if (numImagesLoaded === _images.imageNames.length) {
       imagesLoaded = true;
+      document.getElementById("status").innerHTML = "";
       document.getElementById("loader").style.display = "none";
+      document.getElementById("processButton").removeAttribute("disabled");
 
       if (startOnceLoaded) {
         startWorkers();
@@ -35275,7 +35277,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51952" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49718" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

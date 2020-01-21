@@ -58,7 +58,7 @@ button.primary {
     color: #ffffff !important;
     margin-right: 10px !important;
 }
-button.primary:hover {
+button.primary:hover:enabled {
     box-shadow: 0 0 0 1px #FFF, 0 0 0 3px #1865f2;
 }
 button.primary span {
@@ -85,6 +85,12 @@ button.primary span {
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     pointer-events: none !important;
+}
+
+button.primary:disabled {
+  background: rgba(33,36,44,0.32) !important;
+  color: rgba(255,255,255,0.64) !important;
+  cursor: default !important;
 }
 
 .special {

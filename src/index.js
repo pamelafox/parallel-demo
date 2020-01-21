@@ -24,7 +24,9 @@ function preloadImage(imageName) {
         numImagesLoaded++;
         if (numImagesLoaded === imageNames.length) {
             imagesLoaded = true;
+            document.getElementById("status").innerHTML = "";
             document.getElementById("loader").style.display = "none";
+            document.getElementById("processButton").removeAttribute("disabled");
             if (startOnceLoaded) {
                 startWorkers();
             }
