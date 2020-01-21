@@ -8,31 +8,41 @@ import "threads/register";
 import {imageNames} from "./images.js";
 import "./kittydar-0.1.6.js";
 
-async function loadImage(imageName, imagesDiv) {
+let numWorkers, numImages, numCats, chart, pool, startTime, endTime;
+let ALGO = "kittydar";
+
+let imagesMap = {};
+let imageNodes = [];
+let numImagesLoaded = 0;
+let imagesLoaded = false;
+let startOnceLoaded = false;
+function preloadImage(imageName) {
+    const imageNode = new Image();
+    imageNode.src = `./images/${imageName}`;
+    imageNode.addEventListener("load", function() {
+        numImagesLoaded++;
+        if (numImagesLoaded === imageNames.length) {
+            imagesLoaded = true;
+            if (startOnceLoaded) {
+                startWorkers();
+            }
+        }
+    }, {once: true});
+    return imageNode;
+}
+
+function showImage(imageNode, imagesDiv) {
     const containerNode = document.createElement("div");
     containerNode.classList.add("image-container");
     const overlayNode = document.createElement("div");
     overlayNode.className = "overlay overlay-unknown";
     overlayNode.innerText = "?";
-    const imageNode = document.createElement("img");
     imageNode.className = "image";
-    // Bust the cache to decrease variability across runs
-    const cacheBust = new Date().getTime();
-    imageNode.src = `./images/${imageName}?nocache=${cacheBust}`;
     containerNode.appendChild(imageNode);
     containerNode.appendChild(overlayNode);
     imagesDiv.appendChild(containerNode);
-
-    function onImageLoad() {
-        return new Promise(resolve => {
-            imageNode.addEventListener("load", resolve, {once: true});
-        });
-    }
-
-    await onImageLoad();
     return imageNode;
 }
-
 
 
 function processImage(imageNode, pool) {
@@ -80,10 +90,6 @@ function processImage(imageNode, pool) {
         });
     }
 }
-
-
-let numWorkers, numImages, numCats, chart, pool, startTime, endTime, imageNodes;
-let ALGO = "kittydar";
 
 async function startWorkers() {
     startTime = new Date().getTime();
@@ -150,7 +156,7 @@ async function startWorkers() {
             if (mainPoints.length === 1) {
                 const lastPoint = mainPoints.pop();
                 chartRows[0].addPoint({
-                    name: "Tasks queued",
+                    name: "Initialization complete",
                     start: lastPoint.end,
                     end: new Date().getTime(),
                     y: 0
@@ -193,15 +199,9 @@ async function startWorkers() {
     const shuffledImageNames = imageNames.sort(() => Math.random() - 0.5);
     for (let i = 0; i < numImages; i++) {
         const imageName = shuffledImageNames[i];
-        imageNodes[i] = await loadImage(imageName, imagesDiv);
+        imageNodes[i] = imagesMap[imageName];
+        showImage(imageNodes[i], imagesDiv);
     }
-    chartRows[0].addPoint({
-        name: "Images loaded",
-        start: startTime,
-        end: new Date().getTime(),
-        y: 0
-    }, true);
-    chartRows[0].removePoint(0);
     for (let i = 0; i < imageNodes.length; i++) {
         processImage(imageNodes[i], pool);
     }
@@ -232,5 +232,13 @@ document.getElementById("imagesRange").addEventListener("input", updateNumImages
 updateNumImages();
 
 document.getElementById("processButton").addEventListener("click", () => {
-    startWorkers().catch(console.error)
+    if (!imagesLoaded) {
+        startOnceLoaded = true;
+    } else {
+        startWorkers().catch(console.error);
+    }
 });
+
+for (let i = 0; i < imageNames.length; i++) {
+    imagesMap[imageNames[i]] = preloadImage(imageNames[i]);
+}
