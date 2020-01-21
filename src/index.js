@@ -10,6 +10,7 @@ import "./kittydar-0.1.6.js";
 
 let numWorkers, numImages, numCats, chart, pool, startTime, endTime;
 let ALGO = "kittydar";
+let disableUI = false;
 
 let imagesMap = {};
 let imageNodes = [];
@@ -23,6 +24,7 @@ function preloadImage(imageName) {
         numImagesLoaded++;
         if (numImagesLoaded === imageNames.length) {
             imagesLoaded = true;
+            document.getElementById("images").innerHTML = "";
             if (startOnceLoaded) {
                 startWorkers();
             }
@@ -34,14 +36,45 @@ function preloadImage(imageName) {
 function showImage(imageNode, imagesDiv) {
     const containerNode = document.createElement("div");
     containerNode.classList.add("image-container");
-    const overlayNode = document.createElement("div");
-    overlayNode.className = "overlay overlay-unknown";
-    overlayNode.innerText = "?";
     imageNode.className = "image";
     containerNode.appendChild(imageNode);
-    containerNode.appendChild(overlayNode);
+    if (!disableUI) {
+        const overlayNode = document.createElement("div");
+        overlayNode.className = "overlay overlay-unknown";
+        overlayNode.innerText = "?";
+        containerNode.appendChild(overlayNode);
+    }
     imagesDiv.appendChild(containerNode);
     return imageNode;
+}
+
+function updateImageLoading(imageNode) {
+    if (disableUI) return;
+    imageNodes[event.taskID - 1].nextSibling.className = "overlay";
+    imageNodes[event.taskID - 1].nextSibling.innerHTML = "<div class='loader'></div>";
+}
+
+function updateImageRect(imageNode, rect) {
+    if (disableUI) return;
+    const resizedScale = imageNode.width/imageNode.naturalWidth;
+    imageNode.nextSibling.className = "detection";
+    imageNode.nextSibling.innerText = "";
+    imageNode.nextSibling.style.left = (rect.x * resizedScale) + "px";
+    imageNode.nextSibling.style.top = (rect.y * resizedScale) + "px";
+    imageNode.nextSibling.style.width = (rect.width * resizedScale) + "px";
+    imageNode.nextSibling.style.height = (rect.height * resizedScale) + "px";
+}
+
+function updateImageNo(imageNode) {
+    if (disableUI) return;
+    imageNode.nextSibling.classList.add("overlay-no");
+    imageNode.nextSibling.innerText = "✗";
+}
+
+function updateImageYes(imageNode) {
+    if (disableUI) return;
+    imageNode.nextSibling.className = "overlay overlay-yes";
+    imageNode.nextSibling.innerText = "✓";
 }
 
 
@@ -61,17 +94,10 @@ function processImage(imageNode, pool) {
         pool.queue(async handleCatImage => {
             return handleCatImage(dataObj).then(foundCat => {
                 if (foundCat.length > 0) {
-                    const resizedScale = imageNode.width/imageNode.naturalWidth;
-                    imageNode.nextSibling.className = "detection";
-                    imageNode.nextSibling.innerText = "";
-                    imageNode.nextSibling.style.left = (foundCat[0].x * resizedScale) + "px";
-                    imageNode.nextSibling.style.top = (foundCat[0].y * resizedScale) + "px";
-                    imageNode.nextSibling.style.width = (foundCat[0].width * resizedScale) + "px";
-                    imageNode.nextSibling.style.height = (foundCat[0].height * resizedScale) + "px";
+                    updateImageRect(imageNode, foundCat[0]);
                     numCats++;
                 } else {
-                    imageNode.nextSibling.classList.add("overlay-no");
-                    imageNode.nextSibling.innerText = "✗";
+                    updateImageNo(imageNode);
                 }
             });
         });
@@ -79,21 +105,17 @@ function processImage(imageNode, pool) {
         pool.queue(async handleImage => {
             return handleImage(dataObj).then(foundCat => {
                 if (foundCat) {
-                    imageNode.nextSibling.className = "overlay overlay-yes";
-                    imageNode.nextSibling.innerText = "✓";
+                    updateImageYes(imageNode);
                     numCats++;
                 } else {
-                    imageNode.nextSibling.classList.add("overlay-no");
-                    imageNode.nextSibling.innerText = "✗";
+                    updateImageNo(imageNode);
                 }
             });
         });
     }
 }
 
-async function startWorkers() {
-    startTime = new Date().getTime();
-    numCats = 0;
+function createChart() {
 
     let categoryNames = ["Main"];
     for (let i = 0; i < numWorkers; i++) {
@@ -106,7 +128,7 @@ async function startWorkers() {
             }
         }
     });
-    chart = Highcharts.ganttChart('chart', {
+   return Highcharts.ganttChart('chart', {
         title: {
             text: undefined
         },
@@ -121,18 +143,28 @@ async function startWorkers() {
         }],
         series: []
     });
+}
+
+async function startWorkers() {
+    startTime = new Date().getTime();
+    numCats = 0;
+
     let chartRows = [];
-    chartRows[0] = chart.addSeries({name: "Main", data: []});
-    chartRows[0].addPoint({
-        name: 'Initializing',
-        start: startTime,
-        end: startTime,
-        y: 0,
-        milestone: true
-    }, true);
-    for (let i = 0; i < numWorkers; i++) {
-        const workerID = i + 1;
-        chartRows[workerID] = chart.addSeries({name: `Worker ${workerID}`, data: []});
+    if (!disableUI) {
+        chart = createChart();
+        chartRows[0] = chart.addSeries({name: "Main", data: []});
+        chartRows[0].addPoint({
+            name: 'Initializing',
+            start: startTime,
+            end: startTime,
+            y: 0,
+            milestone: true
+        }, true);
+
+        for (let i = 0; i < numWorkers; i++) {
+            const workerID = i + 1;
+            chartRows[workerID] = chart.addSeries({name: `Worker ${workerID}`, data: []});
+        }
     }
 
     pool = Pool(() => {
@@ -141,48 +173,51 @@ async function startWorkers() {
         } else {
             return spawn(new Worker("./worker-tensorflow.js"));
         }
-
     }, numWorkers);
 
-    let numTasks = 0;
-    let workersTasks = {};
-    pool.events().subscribe(event => {
-        const workerID = event.workerID;
-        if (event.type === "taskQueued") {
-            numTasks++;
-        } else if (event.type === "taskStart") {
-            // Add a point to the main timeline
-            const mainPoints = chartRows[0].getValidPoints();
-            if (mainPoints.length === 1) {
-                const lastPoint = mainPoints.pop();
-                chartRows[0].addPoint({
-                    name: "Initialization complete",
+    if (!disableUI) {
+        pool.events().subscribe(event => {
+            const workerID = event.workerID;
+            if (event.type === "taskStart") {
+                // Add a point to the main timeline
+                const mainPoints = chartRows[0].getValidPoints();
+                if (mainPoints.length === 1) {
+                    const lastPoint = mainPoints.pop();
+                    chartRows[0].addPoint({
+                        name: "Initialization complete",
+                        start: lastPoint.end,
+                        end: new Date().getTime(),
+                        y: 0
+                    }, true);
+                }
+                // Now update this worker's timeline
+                chartRows[event.workerID].addPoint({
+                    name: 'Task ' + event.taskID + ': Started',
+                    start: new Date().getTime(),
+                    end: new Date().getTime(),
+                    y: workerID,
+                    milestone: true
+                }, true);
+                updateImageLoading(imageNode);
+            } else if (event.type === "taskCompleted") {
+                const allPoints = chartRows[event.workerID].getValidPoints();
+                const lastPoint = allPoints.pop();
+                chartRows[event.workerID].addPoint({
+                    name: 'Task ' + event.taskID,
                     start: lastPoint.end,
                     end: new Date().getTime(),
-                    y: 0
+                    y: workerID
                 }, true);
+                chartRows[event.workerID].removePoint(allPoints.length, !disableUI);
             }
-            // Now update this worker's timeline
-            chartRows[event.workerID].addPoint({
-                name: 'Task ' + event.taskID + ': Started',
-                start: new Date().getTime(),
-                end: new Date().getTime(),
-                y: workerID,
-                milestone: true
-            }, true);
-            imageNodes[event.taskID - 1].nextSibling.className = "overlay";
-            imageNodes[event.taskID - 1].nextSibling.innerHTML = "<div class='loader'></div>";
-        } else if (event.type === "taskCompleted") { // TODO: other termination states
-            const allPoints = chartRows[event.workerID].getValidPoints();
-            const lastPoint = allPoints.pop();
-            chartRows[event.workerID].addPoint({
-                name: 'Task ' + event.taskID,
-                start: lastPoint.end,
-                end: new Date().getTime(),
-                y: workerID
-            }, true);
-            chartRows[event.workerID].removePoint(allPoints.length);
-        } else if (event.type === "taskQueueDrained") {
+        });
+    }
+
+    let numTasksCompleted = 0;
+    pool.events().subscribe(event => {
+        if (event.type === "taskCompleted") {
+            numTasksCompleted++;
+        } else if (event.type === "taskQueueDrained" && numTasksCompleted === numImages) {
             endTime = new Date().getTime();
             const duration = (endTime - startTime)/1000;
             document.getElementById("status").innerHTML =
@@ -199,9 +234,13 @@ async function startWorkers() {
     const shuffledImageNames = imageNames.sort(() => Math.random() - 0.5);
     for (let i = 0; i < numImages; i++) {
         const imageName = shuffledImageNames[i];
+        console.log("imageName" + imageName);
         imageNodes[i] = imagesMap[imageName];
+        console.log(imageNodes[i]);
         showImage(imageNodes[i], imagesDiv);
     }
+
+    document.getElementById("status").innerHTML =  "Processing...";
     for (let i = 0; i < imageNodes.length; i++) {
         processImage(imageNodes[i], pool);
     }
@@ -215,6 +254,11 @@ document.getElementById("concurrency").innerText = navigator.hardwareConcurrency
 const maxImages = imageNames.length;
 document.getElementById("imagesRange").setAttribute("max", maxImages);
 document.getElementById("imagesRange").setAttribute("value", maxImages);
+
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('disableUI') === "true") {
+    disableUI = true;
+}
 
 var updateNumWorkers = function() {
     const val = document.getElementById("workersRange").value;
@@ -239,6 +283,9 @@ document.getElementById("processButton").addEventListener("click", () => {
     }
 });
 
+document.getElementById("images").innerHTML = "<div class='loader'></div>";
+
 for (let i = 0; i < imageNames.length; i++) {
     imagesMap[imageNames[i]] = preloadImage(imageNames[i]);
 }
+

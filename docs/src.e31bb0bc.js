@@ -6433,7 +6433,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.imageNames = void 0;
-var imageNames = ["birds_rainbow-lorakeets.png", "boxer-getting-tan.png", "boxer-laying-down.png", "butterfly_monarch.png", "butterfly.png", "cat_squinting.jpg", "cat_on_couch.jpg", "cat_in_hand.jpg", "cat_blue_eyes.jpg", "cat_butterfly.jpg", "cat_black.jpg", "cat_darktabby.jpg", "cat_eats_flowers.jpg", "cat_in_blankets.jpg", "cat_lynx.jpg", "cat_on_table.jpg", "cat_orange.jpg", "cat_tiger.jpg", "cat_greygreen.jpg", "cat_in_snow.jpg", "cat_blackwhite.jpg", "cat_leashed.jpg", "cat_mean.jpg", "cat_orange.jpg", "cat_mainecoon.jpg", "cat_sphynx.jpg", "cat_fence.jpg", "cat.png", "cheetah.png", "crocodiles.png", "dog_sleeping-puppy.png", "dog_puppy_eyes.jpg", "dog_collie.jpg", "fox.png", "horse.png", "kangaroos.png", "komodo-dragon.png", "penguins.png", "pug_et.jpg", "rabbit.png", "retriever.png", "shark.png", "snake_green-tree-boa.png", "spider_pet.jpg"];
+var imageNames = ["birds_rainbow-lorakeets.png", "boxer-getting-tan.png", "boxer-laying-down.png", "butterfly_monarch.png", "butterfly.png", "cat_squinting.jpg", "cat_on_couch.jpg", "cat_in_hand.jpg", "cat_blue_eyes.jpg", "cat_butterfly.jpg", "cat_black.jpg", "cat_darktabby.jpg", "cat_eats_flowers.jpg", "cat_in_blankets.jpg", "cat_lynx.jpg", "cat_on_table.jpg", "cat_orange.jpg", "cat_tiger.jpg", "cat_greygreen.jpg", "cat_in_snow.jpg", "cat_blackwhite.jpg", "cat_leashed.jpg", "cat_mean.jpg", "cat_mainecoon.jpg", "cat_sphynx.jpg", "cat_fence.jpg", "cat.png", "kitten_sits.jpg", "cheetah.png", "crocodiles.png", "dog_sleeping-puppy.png", "dog_puppy_eyes.jpg", "dog_collie.jpg", "fox.png", "horse.png", "kangaroos.png", "komodo-dragon.png", "penguins.png", "pug_et.jpg", "rabbit.png", "retriever.png", "shark.png", "snake_green-tree-boa.png", "spider_pet.jpg"];
 exports.imageNames = imageNames;
 },{}],"../node_modules/@babel/runtime/helpers/typeof.js":[function(require,module,exports) {
 function _typeof(obj) {
@@ -34887,6 +34887,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 (0, _gantt.default)(_highcharts.default);
 var numWorkers, numImages, numCats, chart, pool, startTime, endTime;
 var ALGO = "kittydar";
+var disableUI = false;
 var imagesMap = {};
 var imageNodes = [];
 var numImagesLoaded = 0;
@@ -34901,6 +34902,7 @@ function preloadImage(imageName) {
 
     if (numImagesLoaded === _images.imageNames.length) {
       imagesLoaded = true;
+      document.getElementById("images").innerHTML = "";
 
       if (startOnceLoaded) {
         startWorkers();
@@ -34915,14 +34917,47 @@ function preloadImage(imageName) {
 function showImage(imageNode, imagesDiv) {
   var containerNode = document.createElement("div");
   containerNode.classList.add("image-container");
-  var overlayNode = document.createElement("div");
-  overlayNode.className = "overlay overlay-unknown";
-  overlayNode.innerText = "?";
   imageNode.className = "image";
   containerNode.appendChild(imageNode);
-  containerNode.appendChild(overlayNode);
+
+  if (!disableUI) {
+    var overlayNode = document.createElement("div");
+    overlayNode.className = "overlay overlay-unknown";
+    overlayNode.innerText = "?";
+    containerNode.appendChild(overlayNode);
+  }
+
   imagesDiv.appendChild(containerNode);
   return imageNode;
+}
+
+function updateImageLoading(imageNode) {
+  if (disableUI) return;
+  imageNodes[event.taskID - 1].nextSibling.className = "overlay";
+  imageNodes[event.taskID - 1].nextSibling.innerHTML = "<div class='loader'></div>";
+}
+
+function updateImageRect(imageNode, rect) {
+  if (disableUI) return;
+  var resizedScale = imageNode.width / imageNode.naturalWidth;
+  imageNode.nextSibling.className = "detection";
+  imageNode.nextSibling.innerText = "";
+  imageNode.nextSibling.style.left = rect.x * resizedScale + "px";
+  imageNode.nextSibling.style.top = rect.y * resizedScale + "px";
+  imageNode.nextSibling.style.width = rect.width * resizedScale + "px";
+  imageNode.nextSibling.style.height = rect.height * resizedScale + "px";
+}
+
+function updateImageNo(imageNode) {
+  if (disableUI) return;
+  imageNode.nextSibling.classList.add("overlay-no");
+  imageNode.nextSibling.innerText = "✗";
+}
+
+function updateImageYes(imageNode) {
+  if (disableUI) return;
+  imageNode.nextSibling.className = "overlay overlay-yes";
+  imageNode.nextSibling.innerText = "✓";
 }
 
 function processImage(imageNode, pool) {
@@ -34951,17 +34986,10 @@ function processImage(imageNode, pool) {
               case 0:
                 return _context.abrupt("return", handleCatImage(dataObj).then(function (foundCat) {
                   if (foundCat.length > 0) {
-                    var resizedScale = imageNode.width / imageNode.naturalWidth;
-                    imageNode.nextSibling.className = "detection";
-                    imageNode.nextSibling.innerText = "";
-                    imageNode.nextSibling.style.left = foundCat[0].x * resizedScale + "px";
-                    imageNode.nextSibling.style.top = foundCat[0].y * resizedScale + "px";
-                    imageNode.nextSibling.style.width = foundCat[0].width * resizedScale + "px";
-                    imageNode.nextSibling.style.height = foundCat[0].height * resizedScale + "px";
+                    updateImageRect(imageNode, foundCat[0]);
                     numCats++;
                   } else {
-                    imageNode.nextSibling.classList.add("overlay-no");
-                    imageNode.nextSibling.innerText = "✗";
+                    updateImageNo(imageNode);
                   }
                 }));
 
@@ -34990,12 +35018,10 @@ function processImage(imageNode, pool) {
               case 0:
                 return _context2.abrupt("return", handleImage(dataObj).then(function (foundCat) {
                   if (foundCat) {
-                    imageNode.nextSibling.className = "overlay overlay-yes";
-                    imageNode.nextSibling.innerText = "✓";
+                    updateImageYes(imageNode);
                     numCats++;
                   } else {
-                    imageNode.nextSibling.classList.add("overlay-no");
-                    imageNode.nextSibling.innerText = "✗";
+                    updateImageNo(imageNode);
                   }
                 }));
 
@@ -35014,6 +35040,38 @@ function processImage(imageNode, pool) {
   }
 }
 
+function createChart() {
+  var categoryNames = ["Main"];
+
+  for (var i = 0; i < numWorkers; i++) {
+    categoryNames.push("Worker ".concat(i + 1));
+  }
+
+  _highcharts.default.setOptions({
+    chart: {
+      style: {
+        fontFamily: 'Lato, sans-serif'
+      }
+    }
+  });
+
+  return _highcharts.default.ganttChart('chart', {
+    title: {
+      text: undefined
+    },
+    yAxis: {
+      categories: categoryNames
+    },
+    xAxis: [{
+      visible: false,
+      opposite: false
+    }, {
+      min: startTime - 1000
+    }],
+    series: []
+  });
+}
+
 function startWorkers() {
   return _startWorkers.apply(this, arguments);
 }
@@ -35022,7 +35080,7 @@ function _startWorkers() {
   _startWorkers = (0, _asyncToGenerator2.default)(
   /*#__PURE__*/
   _regenerator.default.mark(function _callee3() {
-    var categoryNames, _i, chartRows, _i2, workerID, numTasks, workersTasks, shuffledImageNames, _i3, imageName, _i4;
+    var chartRows, _i, workerID, numTasksCompleted, shuffledImageNames, _i2, imageName, _i3;
 
     return _regenerator.default.wrap(function _callee3$(_context3) {
       while (1) {
@@ -35030,54 +35088,29 @@ function _startWorkers() {
           case 0:
             startTime = new Date().getTime();
             numCats = 0;
-            categoryNames = ["Main"];
-
-            for (_i = 0; _i < numWorkers; _i++) {
-              categoryNames.push("Worker ".concat(_i + 1));
-            }
-
-            _highcharts.default.setOptions({
-              chart: {
-                style: {
-                  fontFamily: 'Lato, sans-serif'
-                }
-              }
-            });
-
-            chart = _highcharts.default.ganttChart('chart', {
-              title: {
-                text: undefined
-              },
-              yAxis: {
-                categories: categoryNames
-              },
-              xAxis: [{
-                visible: false,
-                opposite: false
-              }, {
-                min: startTime - 1000
-              }],
-              series: []
-            });
             chartRows = [];
-            chartRows[0] = chart.addSeries({
-              name: "Main",
-              data: []
-            });
-            chartRows[0].addPoint({
-              name: 'Initializing',
-              start: startTime,
-              end: startTime,
-              y: 0,
-              milestone: true
-            }, true);
 
-            for (_i2 = 0; _i2 < numWorkers; _i2++) {
-              workerID = _i2 + 1;
-              chartRows[workerID] = chart.addSeries({
-                name: "Worker ".concat(workerID),
+            if (!disableUI) {
+              chart = createChart();
+              chartRows[0] = chart.addSeries({
+                name: "Main",
                 data: []
               });
+              chartRows[0].addPoint({
+                name: 'Initializing',
+                start: startTime,
+                end: startTime,
+                y: 0,
+                milestone: true
+              }, true);
+
+              for (_i = 0; _i < numWorkers; _i++) {
+                workerID = _i + 1;
+                chartRows[workerID] = chart.addSeries({
+                  name: "Worker ".concat(workerID),
+                  data: []
+                });
+              }
             }
 
             pool = (0, _threads.Pool)(function () {
@@ -35087,51 +35120,55 @@ function _startWorkers() {
                 return (0, _threads.spawn)(new Worker("/worker-tensorflow.249d79e3.js"));
               }
             }, numWorkers);
-            numTasks = 0;
-            workersTasks = {};
-            pool.events().subscribe(function (event) {
-              var workerID = event.workerID;
 
-              if (event.type === "taskQueued") {
-                numTasks++;
-              } else if (event.type === "taskStart") {
-                // Add a point to the main timeline
-                var mainPoints = chartRows[0].getValidPoints();
+            if (!disableUI) {
+              pool.events().subscribe(function (event) {
+                var workerID = event.workerID;
 
-                if (mainPoints.length === 1) {
-                  var lastPoint = mainPoints.pop();
-                  chartRows[0].addPoint({
-                    name: "Initialization complete",
-                    start: lastPoint.end,
+                if (event.type === "taskStart") {
+                  // Add a point to the main timeline
+                  var mainPoints = chartRows[0].getValidPoints();
+
+                  if (mainPoints.length === 1) {
+                    var lastPoint = mainPoints.pop();
+                    chartRows[0].addPoint({
+                      name: "Initialization complete",
+                      start: lastPoint.end,
+                      end: new Date().getTime(),
+                      y: 0
+                    }, true);
+                  } // Now update this worker's timeline
+
+
+                  chartRows[event.workerID].addPoint({
+                    name: 'Task ' + event.taskID + ': Started',
+                    start: new Date().getTime(),
                     end: new Date().getTime(),
-                    y: 0
+                    y: workerID,
+                    milestone: true
                   }, true);
-                } // Now update this worker's timeline
+                  updateImageLoading(imageNode);
+                } else if (event.type === "taskCompleted") {
+                  var allPoints = chartRows[event.workerID].getValidPoints();
 
+                  var _lastPoint = allPoints.pop();
 
-                chartRows[event.workerID].addPoint({
-                  name: 'Task ' + event.taskID + ': Started',
-                  start: new Date().getTime(),
-                  end: new Date().getTime(),
-                  y: workerID,
-                  milestone: true
-                }, true);
-                imageNodes[event.taskID - 1].nextSibling.className = "overlay";
-                imageNodes[event.taskID - 1].nextSibling.innerHTML = "<div class='loader'></div>";
-              } else if (event.type === "taskCompleted") {
-                // TODO: other termination states
-                var allPoints = chartRows[event.workerID].getValidPoints();
+                  chartRows[event.workerID].addPoint({
+                    name: 'Task ' + event.taskID,
+                    start: _lastPoint.end,
+                    end: new Date().getTime(),
+                    y: workerID
+                  }, true);
+                  chartRows[event.workerID].removePoint(allPoints.length, !disableUI);
+                }
+              });
+            }
 
-                var _lastPoint = allPoints.pop();
-
-                chartRows[event.workerID].addPoint({
-                  name: 'Task ' + event.taskID,
-                  start: _lastPoint.end,
-                  end: new Date().getTime(),
-                  y: workerID
-                }, true);
-                chartRows[event.workerID].removePoint(allPoints.length);
-              } else if (event.type === "taskQueueDrained") {
+            numTasksCompleted = 0;
+            pool.events().subscribe(function (event) {
+              if (event.type === "taskCompleted") {
+                numTasksCompleted++;
+              } else if (event.type === "taskQueueDrained" && numTasksCompleted === numImages) {
                 endTime = new Date().getTime();
                 var duration = (endTime - startTime) / 1000;
                 document.getElementById("status").innerHTML = "Done processing.<br>\n                Detected: ".concat(numCats, " cats.<br>\n                Processing time: ").concat(duration.toFixed(2), " seconds.");
@@ -35144,17 +35181,21 @@ function _startWorkers() {
               return Math.random() - 0.5;
             });
 
-            for (_i3 = 0; _i3 < numImages; _i3++) {
-              imageName = shuffledImageNames[_i3];
-              imageNodes[_i3] = imagesMap[imageName];
-              showImage(imageNodes[_i3], imagesDiv);
+            for (_i2 = 0; _i2 < numImages; _i2++) {
+              imageName = shuffledImageNames[_i2];
+              console.log("imageName" + imageName);
+              imageNodes[_i2] = imagesMap[imageName];
+              console.log(imageNodes[_i2]);
+              showImage(imageNodes[_i2], imagesDiv);
             }
 
-            for (_i4 = 0; _i4 < imageNodes.length; _i4++) {
-              processImage(imageNodes[_i4], pool);
+            document.getElementById("status").innerHTML = "Processing...";
+
+            for (_i3 = 0; _i3 < imageNodes.length; _i3++) {
+              processImage(imageNodes[_i3], pool);
             }
 
-          case 20:
+          case 15:
           case "end":
             return _context3.stop();
         }
@@ -35172,6 +35213,11 @@ document.getElementById("concurrency").innerText = navigator.hardwareConcurrency
 var maxImages = _images.imageNames.length;
 document.getElementById("imagesRange").setAttribute("max", maxImages);
 document.getElementById("imagesRange").setAttribute("value", maxImages);
+var urlParams = new URLSearchParams(window.location.search);
+
+if (urlParams.get('disableUI') === "true") {
+  disableUI = true;
+}
 
 var updateNumWorkers = function updateNumWorkers() {
   var val = document.getElementById("workersRange").value;
@@ -35197,6 +35243,7 @@ document.getElementById("processButton").addEventListener("click", function () {
     startWorkers().catch(console.error);
   }
 });
+document.getElementById("images").innerHTML = "<div class='loader'></div>";
 
 for (var i = 0; i < _images.imageNames.length; i++) {
   imagesMap[_images.imageNames[i]] = preloadImage(_images.imageNames[i]);
@@ -35229,7 +35276,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59946" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65344" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
